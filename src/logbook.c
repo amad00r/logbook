@@ -6,38 +6,10 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
-#include <stdarg.h>
 #include <dirent.h>
 
+#include "log.h"
 
-void usage(void) {
-    puts(
-        "Usage: ./logbook [entry|......]\n"
-        "logbook is a simple command-line utility for safely storing your thoughts.\n"
-        "### Amadeu Moya Sardà"
-    );
-
-    assert(0 && "add usage of commands");
-}
-
-void fatal(const char *msg, ...) {
-    va_list args;
-    va_start(args, msg);
-    fputs("[FATAL] ", stderr);
-    vfprintf(stderr, msg, args);
-    va_end(args);
-    putc('\n', stderr);
-    exit(EXIT_FAILURE);
-}
-
-void info(const char *msg, ...) {
-    va_list args;
-    va_start(args, msg);
-    fputs("[INFO] ", stdout);
-    vprintf(msg, args);
-    va_end(args);
-    putchar('\n');
-}
 
 char *get_logbook_path(const char *name) {
     char *home = getenv("HOME");
@@ -59,7 +31,9 @@ const char *get_extension(const char *filename) {
 
 int main(int argc, char **argv) {
 
-    if (argc == 1 || (argc == 2 && !strcmp(argv[1], "help"))) usage();
+    if (argc == 1) quote();
+
+    else if (argc == 2 && !strcmp(argv[1], "help")) usage();
 
     else if (!strcmp(argv[1], "list")) {
         if (argc != 2) fatal("unexpected parameters, use `logbook help`");

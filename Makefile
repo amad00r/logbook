@@ -1,5 +1,5 @@
 CC = clang
-DEPS = 
+DEPS = src/log.h
 OBJ = bin/logbook.o
 
 bin/%.o: src/%.c $(DEPS)
