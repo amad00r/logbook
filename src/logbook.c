@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <dirent.h>
+#include <time.h>
 
 #include "log.h"
 
@@ -26,6 +27,17 @@ const char *get_extension(const char *filename) {
     const char *dot = strrchr(filename, '.');
     if (!dot || dot == filename) return "";
     return dot;
+}
+
+
+char *strip(char *str) {
+    char *stripped_str = str;
+    char c = *stripped_str;
+    while (c == ' ' || c == '\n' || c == '\t') c = *++stripped_str;
+    unsigned int size = strlen(stripped_str);
+    while (size > 0 && ((c = stripped_str[size - 1]) == ' ' || c == '\n' || c == '\t' || c == EOF)) --size;
+    if (size > 0) stripped_str[size] = '\0';
+    return stripped_str;
 }
 
 
@@ -75,9 +87,49 @@ int main(int argc, char **argv) {
         if (argc != 3) fatal("unexpected parameters, use `logbook help`");
 
         char *filepath = get_logbook_path(argv[2]);
-        if (access(filepath, F_OK)) fatal("`%s` does not exist", filepath);
-        if (remove(filepath)) fatal(strerror(errno));
+        if (remove(filepath)) fatal("could not remove `%s`", filepath);
         info("`%s` successfully removed", filepath);
+
+        free(filepath);
+    }
+
+    else if (!strcmp(argv[1], "write")) {
+        if (argc != 3) fatal("unexpected parameters, use `logbook help`");
+
+        char *filepath = get_logbook_path(argv[2]);
+        if (access(filepath, F_OK)) fatal("`%s` does not exist", filepath);
+
+        FILE *f = fopen(filepath, "a");
+        if (f == NULL) fatal("`%s` could not be opened", filepath);
+        
+        fputs("(title): ", stdout);
+        size_t size = 0;
+        char *input1 = NULL;
+        if (getline(&input1, &size, stdin) == -1) fatal(strerror(errno));
+        
+        puts("(body):\n");
+        size = 0;
+        char *input2 = NULL;
+        if (getdelim(&input2, &size, EOF, stdin) == -1) fatal(strerror(errno));
+
+        time_t t = time(NULL);
+        char *current_time = ctime(&t);
+        current_time[strlen(current_time) - 1] = '\0';
+
+        char *title = strip(input1);
+        char *body = strip(input2);
+
+        fputs(current_time, f);
+        putc('\0', f);
+        fputs(title, f);
+        putc('\0', f);
+        fputs(body, f);
+        putc('\0', f);
+
+        putchar('\n');
+        info("%u bytes message successfully logged", strlen(body));
+
+        if (fclose(f) == -1) fatal(strerror(errno));
 
         free(filepath);
     }
