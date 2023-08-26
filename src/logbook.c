@@ -10,7 +10,6 @@
 #include <dirent.h>
 
 
-
 void usage(void) {
     puts(
         "Usage: ./logbook [entry|......]\n"
@@ -60,8 +59,6 @@ const char *get_extension(const char *filename) {
 
 int main(int argc, char **argv) {
 
-    assert(0 && "TODO: list and list_locations");
-
     if (argc == 1 || (argc == 2 && !strcmp(argv[1], "help"))) usage();
 
     else if (!strcmp(argv[1], "list")) {
@@ -73,6 +70,7 @@ int main(int argc, char **argv) {
         DIR *dir = opendir(home);
         if (dir == NULL) fatal(strerror(errno));
         struct dirent *entry;
+        errno = 0;
         while ((entry = readdir(dir)) != NULL)
             if (entry->d_type == DT_REG && !strcmp(get_extension(entry->d_name), ".lock")) {
                 fputs(home, stdout);
@@ -80,6 +78,7 @@ int main(int argc, char **argv) {
                 puts(entry->d_name);
                 ++logbook_counter;
             }
+        if (errno || closedir(dir) == -1) fatal(strerror(errno));
 
         if (logbook_counter == 0) info("did not found any logbook, to create one use `logbook create <LOGBOOK_NAME>`");
         else if (logbook_counter == 1) info("found 1 logbook");
