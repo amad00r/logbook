@@ -29,7 +29,6 @@ const char *get_extension(const char *filename) {
     return dot;
 }
 
-
 char *strip(char *str) {
     char *stripped_str = str;
     char c = *stripped_str;
@@ -40,6 +39,15 @@ char *strip(char *str) {
     return stripped_str;
 }
 
+char *add_extension(const char *filename, const char *extension) {
+    int filename_size = strlen(filename);
+    int extension_size = strlen(extension);
+    char *new_filename = malloc(sizeof(char)*(filename_size + extension_size + 1));
+    if (new_filename == NULL) fatal(strerror(errno));
+    strncpy(new_filename, filename, filename_size + 1);
+    strncat(new_filename, extension, extension_size + 1);
+    return new_filename;
+}
 
 int main(int argc, char **argv) {
 
@@ -132,6 +140,60 @@ int main(int argc, char **argv) {
         if (fclose(f) == -1) fatal(strerror(errno));
 
         free(filepath);
+    }
+
+    else if (!strcmp(argv[1], "generate")) {
+        if (argc != 3 && argc != 4) fatal("unexpected parameters, use `logbook help`");
+
+        char *filepath = get_logbook_path(argv[2]);
+        if (access(filepath, F_OK)) fatal("`%s` does not exist", filepath);
+
+        int fd = open(filepath, O_RDONLY);
+        if (fd == -1) fatal(strerror(errno));
+
+        free(filepath);
+
+        off_t size = lseek(fd, 0, SEEK_END);
+        lseek(fd, 0, SEEK_SET);
+        char *logbook_buf = malloc(sizeof(char)*(size + 1));
+        if (logbook_buf == NULL || read(fd, logbook_buf, size) == -1) fatal(strerror(errno));
+        logbook_buf[size] = EOF;
+
+        char *md_path = add_extension(argv[2], ".md");
+
+        FILE *md = fopen(md_path, "w");
+        if (md == NULL) fatal(strerror(errno));
+
+        char *field = logbook_buf;
+        while (*field != EOF) {
+            fprintf(md, "## %s\n\n", field);
+            field += strlen(field) + 1;
+            fprintf(md, "### %s\n\n", field);
+            field += strlen(field) + 1;
+            fprintf(md, "%s\n\n", field);
+            field += strlen(field) + 1;
+        }
+
+        free(logbook_buf);
+
+        if (fclose(md) == -1) fatal(strerror(errno));
+
+        char *pdf_path = add_extension(argv[2], ".pdf");
+        int md_path_size = strlen(md_path);
+        int pdf_path_size = strlen(pdf_path);
+        char *command = malloc(sizeof(char)*(md_path_size + pdf_path_size + 12));
+        if (command == NULL) fatal(strerror(errno));
+        strncpy(command, "pandoc ", 8);
+        strncat(command, md_path, md_path_size + 1);
+        strncat(command, " -o ", 5);
+        strncat(command, pdf_path, pdf_path_size + 1);
+        free(pdf_path);
+
+        system(command);
+        free(command);
+
+        if (remove(md_path) == -1) fatal(strerror(errno));
+        free(md_path);
     }
 
     else fatal("unexpected parameters, use `logbook help`");
