@@ -178,8 +178,11 @@ int main(int argc, char **argv) {
 
         if (fclose(md) == -1) fatal(strerror(errno));
 
-        char *pdf_path = add_extension(argv[2], ".pdf");
+        
         int md_path_size = strlen(md_path);
+        char *pdf_path;
+        if (argc == 4) pdf_path = argv[3];
+        else           pdf_path = add_extension(argv[2], ".pdf");
         int pdf_path_size = strlen(pdf_path);
         char *command = malloc(sizeof(char)*(md_path_size + pdf_path_size + 12));
         if (command == NULL) fatal(strerror(errno));
@@ -187,7 +190,7 @@ int main(int argc, char **argv) {
         strncat(command, md_path, md_path_size + 1);
         strncat(command, " -o ", 5);
         strncat(command, pdf_path, pdf_path_size + 1);
-        free(pdf_path);
+        if (argc == 3) free(pdf_path);
 
         system(command);
         free(command);
