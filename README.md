@@ -6,4 +6,3 @@ logbook is a simple command-line utility to keep track of your thoughts.
 
 - [ ] add read command
 - [ ] do not depend on pandoc
-- ...
