@@ -1,6 +1,6 @@
 # logbook
 
-logbook is a simple command-line utility for safely storing your thoughts.
+logbook is a simple command-line utility to keep track of your thoughts.
 
 ## TODO
 
