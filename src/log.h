@@ -8,18 +8,22 @@
 
 void quote(void) {
     puts(
-        "\"logbook is a simple command-line utility for safely storing your thoughts\"\n"
-        "~ Amadeu Moya Sardà\n\n"
-        "run `logbook help` to learn how to use the tool"
+        "\"logbook is a simple command-line utility to keep track of your thoughts\"\n"
+        "~ Amadeu Moya Sardà\n"
+        "\n"
+        "run `logbook -h` to learn how to use the tool"
     );
 }
 
 void usage(void) {
     puts(
-        "Usage: ./logbook [entry|......]\n"
+        "Usage:\n"
+        "   logbook list\n"
+        "   logbook create <name>\n"
+        "   logbook delete <name>\n"
+        "   logbook write <name>\n"
+        "   logbook gen_pdf <name> [output]"
     );
-
-    assert(0 && "add usage of commands");
 }
 
 void fatal(const char *msg, ...) {

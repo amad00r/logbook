@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <limits.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
@@ -10,53 +9,18 @@
 #include <time.h>
 
 #include "log.h"
+#include "path.h"
+#include "strip.h"
 
-
-char *get_logbook_path(const char *name) {
-    char *home = getenv("HOME");
-    int home_path_len = strlen(home);
-    char *path = malloc(sizeof(char)*(home_path_len + strlen(name) + 8)); // len("/.logbook.lock") + 1 = 15
-    strncpy(path, home, home_path_len + 1);
-    strncat(path, "/.", 3);
-    strncat(path, name, strlen(name) + 1);
-    strncat(path, ".lock", 6);
-    return path;
-}
-
-const char *get_extension(const char *filename) {
-    const char *dot = strrchr(filename, '.');
-    if (!dot || dot == filename) return "";
-    return dot;
-}
-
-char *strip(char *str) {
-    char *stripped_str = str;
-    char c = *stripped_str;
-    while (c == ' ' || c == '\n' || c == '\t') c = *++stripped_str;
-    unsigned int size = strlen(stripped_str);
-    while (size > 0 && ((c = stripped_str[size - 1]) == ' ' || c == '\n' || c == '\t' || c == EOF)) --size;
-    if (size > 0) stripped_str[size] = '\0';
-    return stripped_str;
-}
-
-char *add_extension(const char *filename, const char *extension) {
-    int filename_size = strlen(filename);
-    int extension_size = strlen(extension);
-    char *new_filename = malloc(sizeof(char)*(filename_size + extension_size + 1));
-    if (new_filename == NULL) fatal(strerror(errno));
-    strncpy(new_filename, filename, filename_size + 1);
-    strncat(new_filename, extension, extension_size + 1);
-    return new_filename;
-}
 
 int main(int argc, char **argv) {
 
     if (argc == 1) quote();
 
-    else if (argc == 2 && !strcmp(argv[1], "help")) usage();
+    else if (argc == 2 && (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help"))) usage();
 
     else if (!strcmp(argv[1], "list")) {
-        if (argc != 2) fatal("unexpected parameters, use `logbook help`");
+        if (argc != 2) fatal("unexpected parameters, use `logbook -h`");
 
         unsigned int logbook_counter = 0;
 
@@ -80,7 +44,7 @@ int main(int argc, char **argv) {
     }
 
     else if (!strcmp(argv[1], "create")) {
-        if (argc != 3) fatal("unexpected parameters, use `logbook help`");
+        if (argc != 3) fatal("unexpected parameters, use `logbook -h`");
 
         char *filepath = get_logbook_path(argv[2]);
         if (!access(filepath, F_OK)) fatal("`%s` already exists", filepath);
@@ -92,7 +56,7 @@ int main(int argc, char **argv) {
     }
 
     else if (!strcmp(argv[1], "delete")) {
-        if (argc != 3) fatal("unexpected parameters, use `logbook help`");
+        if (argc != 3) fatal("unexpected parameters, use `logbook -h`");
 
         char *filepath = get_logbook_path(argv[2]);
         if (remove(filepath)) fatal("could not remove `%s`", filepath);
@@ -102,7 +66,7 @@ int main(int argc, char **argv) {
     }
 
     else if (!strcmp(argv[1], "write")) {
-        if (argc != 3) fatal("unexpected parameters, use `logbook help`");
+        if (argc != 3) fatal("unexpected parameters, use `logbook -h`");
 
         char *filepath = get_logbook_path(argv[2]);
         if (access(filepath, F_OK)) fatal("`%s` does not exist", filepath);
@@ -142,8 +106,8 @@ int main(int argc, char **argv) {
         free(filepath);
     }
 
-    else if (!strcmp(argv[1], "generate")) {
-        if (argc != 3 && argc != 4) fatal("unexpected parameters, use `logbook help`");
+    else if (!strcmp(argv[1], "gen_pdf")) {
+        if (argc != 3 && argc != 4) fatal("unexpected parameters, use `logbook -h`");
 
         char *filepath = get_logbook_path(argv[2]);
         if (access(filepath, F_OK)) fatal("`%s` does not exist", filepath);
@@ -199,7 +163,7 @@ int main(int argc, char **argv) {
         free(md_path);
     }
 
-    else fatal("unexpected parameters, use `logbook help`");
+    else fatal("unexpected parameters, use `logbook -h`");
 
     return EXIT_SUCCESS;
 }
