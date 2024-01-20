@@ -129,12 +129,29 @@ int main(int argc, char **argv) {
         if (md == NULL) fatal(strerror(errno));
 
         char *field = logbook_buf;
+        char c;
         while (*field != EOF) {
-            fprintf(md, "## %s\n\n", field);
+            fputs("## ", md);
+            for (int i = 0; (c = field[i]) != '\0'; ++i) {
+                if (c == '\n') fputs("\n\n", md);
+                else fputc(c, md);
+            }
+            fputs("\n\n", md);
             field += strlen(field) + 1;
-            fprintf(md, "### %s\n\n", field);
+
+            fputs("### ", md);
+            for (int i = 0; (c = field[i]) != '\0'; ++i) {
+                if (c == '\n') fputs("\n\n", md);
+                else fputc(c, md);
+            }
+            fputs("\n\n", md);
             field += strlen(field) + 1;
-            fprintf(md, "%s\n\n", field);
+
+            for (int i = 0; (c = field[i]) != '\0'; ++i) {
+                if (c == '\n') fputs("\n\n", md);
+                else fputc(c, md);
+            }
+            fputs("\n\n", md);
             field += strlen(field) + 1;
         }
 
